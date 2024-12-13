@@ -1,0 +1,59 @@
+<script>
+	import { onMount } from 'svelte';
+	import { fetchDate, dataStore } from '../Store/store';
+	import Carousel from 'svelte-carousel';
+	import { paginate, LightPaginationNav } from 'svelte-paginate';
+
+	let loading = true;
+	let error = null;
+	let currentPage = 1;
+	let pageSize = 4;
+	console.log($dataStore);
+
+	// let items = $dataStore;
+
+	// let currentPage = 1;
+	// let pageSize = 4;
+
+	$: paginatedItems = paginate({ items: $dataStore, pageSize, currentPage });
+
+	onMount(async () => {
+		try {
+			await fetchDate();
+		} catch (err) {
+			error = 'Failed to fetch data';
+		} finally {
+			loading = false;
+		}
+	});
+</script>
+
+{#if loading}
+	<div class="flex h-screen w-full items-center justify-center">loading...</div>
+{:else if error}
+	<div class="flex h-screen w-full items-center justify-center text-red-500">{error}</div>
+{:else}
+	<div class="h-screen w-full">
+		home
+		<Carousel>
+			{#each $dataStore as item}
+				<div>{item.title}</div>
+			{/each}
+		</Carousel>
+		<ul class="items">
+			{#each paginatedItems as item}
+				<li class="item">{item.title}</li>
+			{/each}
+		</ul>
+
+		<LightPaginationNav
+			totalItems={items?.length}
+			{pageSize}
+			{currentPage}
+			limit={1}
+			showStepOptions={true}
+			on:setPage={(e) => (currentPage = e.detail.page)}
+		/>
+	</div>
+{/if}
+<!-- https://fakestoreapi.com/products  -->
